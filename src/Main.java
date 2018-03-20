@@ -32,6 +32,9 @@ public class Main {
 			if(entry.getName().endsWith(".java"))
 				fin.add(jarfile.getInputStream(entry));
 			
+		}
+		return;
+	}
 	
 	public static void getFilesInDir(String pathname, ArrayList<InputStream> streams) throws IOException {
 		File dir = new File(pathname);
