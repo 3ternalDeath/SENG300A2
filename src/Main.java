@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -18,7 +19,7 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 
 public class Main {
 	
-	public static final String CLASSPATH = "C:\\Program Files\\Java\\jre1.8.0_161\\lib\\rt.jar";
+	public static final String CLASSPATH = System.getProperty("java.home") + File.pathSeparator +  "rt.jar";
 
 	public static void main(String[] args) throws IOException {
 		if (args.length < 1) 
@@ -34,13 +35,22 @@ public class Main {
 			getFilesInDir(args[0], streams, names);
 		}
 		
+		parseAll(streams, names, args[0]);
 		
+		CountingVisitor result = CountingVisitor.getTheTing();
+		List<String> typeNames = result.getJavaType();
+		List<int[]> counts = result.getCounts();
+		
+		while(!typeNames.isEmpty()) {
+			int[] curCount = counts.remove(0);
+			System.out.println("Type: " + typeNames.remove(0) + " Declarations: " + curCount[0] + " References: " + curCount[1]);
+		}
 		
 	}
 	
 	public static void parseAll(ArrayList<InputStream> streams, ArrayList<String> names, String srcPath) throws IOException {
 		while(!streams.isEmpty()) {
-			String source = readFileToString(streams.get(0));
+			String source = readFileToString(streams.remove(0));
 			
 			ASTParser parser = ASTParser.newParser(AST.JLS8);
 			parser.setResolveBindings(true);
@@ -51,7 +61,7 @@ public class Main {
 			Map<String, String> options = JavaCore.getOptions();
 			parser.setCompilerOptions(options);
 	 
-			String unitName = names.get(0);
+			String unitName = names.remove(0);
 			parser.setUnitName(unitName);
 	 
 			String[] sources = { srcPath }; 
@@ -63,8 +73,6 @@ public class Main {
 			CompilationUnit cu = (CompilationUnit) parser.createAST(null);
 			
 			cu.accept(CountingVisitor.getTheTing());
-			names.remove(0);
-			streams.remove(0);
 		}
 	}
 	
@@ -112,7 +120,7 @@ public class Main {
 			else if (f.isFile() && f.getName().endsWith(".jar"))
 				readJarEntries(f.getCanonicalPath(), streams, names);
 			else if (f.isDirectory())
-				getFilesInDir(f.getAbsolutePath(), streams, names);
+				getFilesInDir(f.getCanonicalPath(), streams, names);
 			
 		}
 		
