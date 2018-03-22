@@ -1,52 +1,119 @@
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.ASTParser;
+import org.eclipse.jdt.core.dom.CompilationUnit;
+
 public class Main {
+	
+	public static final String CLASSPATH = "C:\\Program Files\\Java\\jre1.8.0_161\\lib\\rt.jar";
 
 	public static void main(String[] args) throws IOException {
 		if (args.length < 1) 
 			return;				//invalid amt of arguments
 		
 		ArrayList<InputStream> streams = new ArrayList<>();
+		ArrayList<String> names = new ArrayList<>();
 		
 		if(args[0].endsWith(".jar")) {
-			readJarEntries(args[0], streams);
+			readJarEntries(args[0], streams, names);
 		}
 		else {
-			getFilesInDir(args[0], streams);
+			getFilesInDir(args[0], streams, names);
 		}
+		
+		
 		
 	}
 	
-	public static void readJarEntries(String pathname, ArrayList<InputStream> fin) throws IOException {
+	public static void parseAll(ArrayList<InputStream> streams, ArrayList<String> names, String srcPath) throws IOException {
+		while(!streams.isEmpty()) {
+			String source = readFileToString(streams.get(0));
+			
+			ASTParser parser = ASTParser.newParser(AST.JLS8);
+			parser.setResolveBindings(true);
+			parser.setKind(ASTParser.K_COMPILATION_UNIT);
+	 
+			parser.setBindingsRecovery(true);
+	 
+			Map<String, String> options = JavaCore.getOptions();
+			parser.setCompilerOptions(options);
+	 
+			String unitName = names.get(0);
+			parser.setUnitName(unitName);
+	 
+			String[] sources = { srcPath }; 
+			String[] classpath = {CLASSPATH};
+	 
+			parser.setEnvironment(classpath, sources, new String[] { "UTF-8"}, true);
+			parser.setSource(source.toCharArray());
+	 
+			CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+			
+			cu.accept(CountingVisitor.getTheTing());
+			names.remove(0);
+			streams.remove(0);
+		}
+	}
+	
+	public static String readFileToString(InputStream stream) throws IOException {
+		StringBuilder fileData = new StringBuilder(1000);
+		BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+
+		char[] buf = new char[10];
+		int numRead;
+		while ((numRead = reader.read(buf)) != -1) {
+			String readData = String.valueOf(buf, 0, numRead);
+			fileData.append(readData);
+			buf = new char[1024];
+		}
+
+		reader.close();
+		stream.close();
+
+		return fileData.toString();
+	}
+	
+	public static void readJarEntries(String pathname, ArrayList<InputStream> fin, ArrayList<String> names) throws IOException {
 		JarFile jarfile = new JarFile(pathname);			//resource leak, cant close because we will be using the inputstreams
 		Enumeration<JarEntry> entries = jarfile.entries();	//could possibly move jarfile to outside method and pass it in
 		while(entries.hasMoreElements()) {
 			JarEntry entry = entries.nextElement();
-			if(entry.getName().endsWith(".java"))
+			if(entry.getName().endsWith(".java")) {
 				fin.add(jarfile.getInputStream(entry));
-			
+				names.add(entry.getName());
+			}
 		}
 		return;
 	}
 	
-	public static void getFilesInDir(String pathname, ArrayList<InputStream> streams) throws IOException {
+	public static void getFilesInDir(String pathname, ArrayList<InputStream> streams, ArrayList<String> names) throws IOException {
 		File dir = new File(pathname);
 		
 		File[] miniFiles = dir.listFiles();
 		
 		for (File f : miniFiles) {
-			if(f.isFile() && f.getName().endsWith(".java"))
+			if(f.isFile() && f.getName().endsWith(".java")) {
 				streams.add(new FileInputStream(f));
-			else if (f.isDirectory()) {
-				getFilesInDir(f.getAbsolutePath(), streams);
+				names.add(f.getName());
 			}
+			else if (f.isFile() && f.getName().endsWith(".jar"))
+				readJarEntries(f.getCanonicalPath(), streams, names);
+			else if (f.isDirectory())
+				getFilesInDir(f.getAbsolutePath(), streams, names);
+			
 		}
 		
 		return;
