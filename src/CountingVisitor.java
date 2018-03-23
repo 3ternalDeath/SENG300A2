@@ -14,10 +14,6 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     	return thatOneInstance;
     }
     
-    public static CountingVisitor getNewTing() {
-    	return new CountingVisitor();
-    }
-    
     public static void reset() {
     	thatOneInstance = new CountingVisitor();
     }

@@ -9,8 +9,10 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.regex.Pattern;
 
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
@@ -19,14 +21,14 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 
 public class Main {
 	
-	public static final String CLASSPATH = System.getProperty("java.home") + File.pathSeparator +  "rt.jar";
+	public static final String CLASSPATH = System.getProperty("java.home") + File.separatorChar +  "rt.jar";
 
 	public static void main(String[] args) throws IOException {
 		if (args.length < 1) 
 			return;				//invalid amt of arguments
 		
-		ArrayList<InputStream> streams = new ArrayList<>();
-		ArrayList<String> names = new ArrayList<>();
+		Stack<InputStream> streams = new Stack<>();
+		Stack<String> names = new Stack<>();
 		
 		if(args[0].endsWith(".jar")) {
 			readJarEntries(args[0], streams, names);
@@ -48,9 +50,9 @@ public class Main {
 		
 	}
 	
-	public static void parseAll(ArrayList<InputStream> streams, ArrayList<String> names, String srcPath) throws IOException {
+	private static void parseAll(Stack<InputStream> streams, Stack<String> names, String srcPath) throws IOException {
 		while(!streams.isEmpty()) {
-			String source = readFileToString(streams.remove(0));
+			String source = readFileToString(streams.pop());
 			
 			ASTParser parser = ASTParser.newParser(AST.JLS8);
 			parser.setResolveBindings(true);
@@ -61,7 +63,7 @@ public class Main {
 			Map<String, String> options = JavaCore.getOptions();
 			parser.setCompilerOptions(options);
 	 
-			String unitName = names.remove(0);
+			String unitName = names.pop();
 			parser.setUnitName(unitName);
 	 
 			String[] sources = { srcPath }; 
@@ -94,21 +96,31 @@ public class Main {
 		return fileData.toString();
 	}
 	
-	public static void readJarEntries(String pathname, ArrayList<InputStream> fin, ArrayList<String> names) throws IOException {
+	public static void readJarEntries(String pathname, List<InputStream> streams, List<String> names) throws IOException {
 		JarFile jarfile = new JarFile(pathname);			//resource leak, cant close because we will be using the inputstreams
 		Enumeration<JarEntry> entries = jarfile.entries();	//could possibly move jarfile to outside method and pass it in
 		while(entries.hasMoreElements()) {
 			JarEntry entry = entries.nextElement();
 			if(entry.getName().endsWith(".java")) {
-				fin.add(jarfile.getInputStream(entry));
+				streams.add(jarfile.getInputStream(entry));
 				names.add(entry.getName());
 			}
 		}
 		return;
 	}
 	
-	public static void getFilesInDir(String pathname, ArrayList<InputStream> streams, ArrayList<String> names) throws IOException {
+	public static void getFilesInDir(String pathname, List<InputStream> streams, List<String> names) throws IOException {
 		File dir = new File(pathname);
+		
+		if(!dir.isDirectory()) {
+			if(!dir.getName().endsWith(".jar")) {
+				streams.add(new FileInputStream(pathname));
+				names.add(dir.getName());
+			}
+			else
+				readJarEntries(pathname, streams, names);
+			return;
+		}
 		
 		File[] miniFiles = dir.listFiles();
 		
