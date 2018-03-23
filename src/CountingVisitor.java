@@ -44,6 +44,19 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
         }
         return true;
     }
+    
+    private boolean checkRef(String name) {
+    	if(types.contains(name)){
+            int i = types.indexOf(name);
+            counts.get(i)[1]++;
+        }
+        else {
+        	types.add(name);
+        	counts.add(new int[] {0, 1});
+        }
+    	
+    	return true;
+    }
 
     /////////////////////// declarations count ///////////////////////////
     
@@ -66,24 +79,12 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     @Override
     public boolean visit(SimpleName node) {
         String name = node.getFullyQualifiedName();
-        if(types.contains(name)){
-            int i = types.indexOf(name);
-            // TODO increment both reference & declaration?
-            counts.get(i)[0]++;
-            counts.get(i)[1]++;
-        }
-        return true;
+        return checkRef(name);
     }
 
     @Override
     public boolean visit(PrimitiveType node) {
         String name = node.getPrimitiveTypeCode().toString();
-        if(types.contains(name)){
-            int i = types.indexOf(name);
-            // TODO increment both reference & declaration?
-            counts.get(i)[0]++;
-            counts.get(i)[1]++;
-        }
-        return true;
+        return checkRef(name);
     }
 }
