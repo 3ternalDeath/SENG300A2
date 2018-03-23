@@ -13,6 +13,14 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     public static CountingVisitor getTheTing() {
     	return thatOneInstance;
     }
+    
+    public static CountingVisitor getNewTing() {
+    	return new CountingVisitor();
+    }
+    
+    public static void reset() {
+    	thatOneInstance = new CountingVisitor();
+    }
 
     private CountingVisitor() {
         counts = new ArrayList<int[]>();
@@ -32,6 +40,7 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
         if(types.contains(name)) {
             int i = types.indexOf(name);
             counts.get(i)[0]++;
+            
         }
         else {
             types.add(name);
