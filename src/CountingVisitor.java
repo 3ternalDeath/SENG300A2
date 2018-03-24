@@ -95,7 +95,7 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
             }
         }
 
-        if (types.contains(name) && node.getParent() instanceof TypeDeclaration) {
+        if (node.getParent() instanceof TypeDeclaration) {
 
             if (node.getParent().getParent() instanceof TypeDeclaration) { // if this node is an inner-class
                 // get the fullname of the innerclass with its parent, separate with a period (Foo.Bar)
