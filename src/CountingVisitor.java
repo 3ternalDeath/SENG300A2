@@ -30,22 +30,19 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     public List<String> getJavaType() {
         return types;
     }
-    
-    private boolean checkDeclarations(AbstractTypeDeclaration node) {
-        String name = node.resolveBinding().getQualifiedName();
-        if(types.contains(name)) {
-            int i = types.indexOf(name);
+
+    private void checkDeclarations(String typeName) {
+        if(types.contains(typeName)) {
+            int i = types.indexOf(typeName);
             counts.get(i)[0]++;
-            
         }
         else {
-            types.add(name);
+            types.add(typeName);
             counts.add(new int[] {1, 0});
         }
-        return true;
     }
     
-    private boolean checkRef(String name) {
+    private void checkRef(String name) {
     	if(types.contains(name)){
             int i = types.indexOf(name);
             counts.get(i)[1]++;
@@ -54,37 +51,71 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
         	types.add(name);
         	counts.add(new int[] {0, 1});
         }
-    	
-    	return true;
     }
 
-    /////////////////////// declarations count ///////////////////////////
-    
+    @Override
+    public boolean visit(VariableDeclarationFragment node) {
+        String typeSimpleName;
+
+        if (node.getParent() instanceof VariableDeclarationStatement
+                && !(node.getParent().getParent() instanceof Block)) {
+
+            VariableDeclarationStatement declaration = (VariableDeclarationStatement) node.getParent();
+            typeSimpleName = declaration.getType().resolveBinding().getQualifiedName();
+
+            checkRef(typeSimpleName);
+
+        }
+
+        return true;
+    }
+
     public boolean visit(TypeDeclaration node) {
-    	return checkDeclarations(node);
+        String name = node.resolveBinding().getQualifiedName();
+        checkDeclarations(name);
+        return true;
     }
-
-    @Override
-    public boolean visit(AnnotationTypeDeclaration node) {
-        return checkDeclarations(node);
-    }
-
-    @Override
-    public boolean visit(EnumDeclaration node) {
-        return checkDeclarations(node);
-    }
-
-    /////////////////////// references count ///////////////////////////
 
     @Override
     public boolean visit(SimpleName node) {
+
         String name = node.getFullyQualifiedName();
-        return checkRef(name);
+
+        if (types.contains(name) && !(node.getParent() instanceof TypeDeclaration)) {
+            int i = types.indexOf(name);
+
+            if ((node.getParent().getParent() instanceof CompilationUnit)) {
+
+                if (node.getParent() instanceof ImportDeclaration) { // check if it's an 'import' statement
+                    counts.get(i)[1]++;
+                }
+
+            } else {
+                counts.get(i)[1]++;
+            }
+        }
+
+        if (types.contains(name) && node.getParent() instanceof TypeDeclaration) {
+
+            if (node.getParent().getParent() instanceof TypeDeclaration) { // if this node is an inner-class
+                // get the fullname of the innerclass with its parent, separate with a period (Foo.Bar)
+                String parentClass = ((TypeDeclaration) node.getParent().getParent()).getName().toString();
+                String innerClass = node.getFullyQualifiedName();
+                String fullname = parentClass + "." + innerClass;
+
+                checkDeclarations(fullname);
+            }
+        }
+        return true;
     }
 
     @Override
     public boolean visit(PrimitiveType node) {
         String name = node.getPrimitiveTypeCode().toString();
-        return checkRef(name);
+        if(types.contains(name)){
+            int i = types.indexOf(name);
+            counts.get(i)[1]++;
+        }
+        return true;
     }
 }
