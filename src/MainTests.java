@@ -21,11 +21,12 @@ public class MainTests {
 	@Before
 	public void setup() {
 		CountingVisitor.reset();
-		streams = new Stack<>();
-		names = new Stack<>();
+		streams = new Stack<>();		// empty stack for streams
+		names = new Stack<>();			// empty stack for name of files
 	}
 	
 	@Test
+	// expect it get the same number of files in .jar file, and have each .java file name in list names
 	public void readinJar() throws IOException {
 		String pathname = DIRPATH + File.separator + "f1" + File.separator + "yo.jar";
 		Main.readJarEntries(pathname, streams, names);
@@ -38,11 +39,12 @@ public class MainTests {
 	}
 	
 	@Test
+	// expect it get the same number of files in directory, and have each .java file name in list names
 	public void readDir() throws IOException {
 		String pathname = DIRPATH+ File.separator + "f1";
 		Main.getFilesInDir(pathname, streams, names);
 		assertEquals(names.size(), streams.size());
-		assertEquals(names.size(), 6);
+		assertEquals(names.size(), 6);				//number of files in directory
 		assertTrue(names.contains("C.java"));
 		assertTrue(names.contains("D.java"));
 		assertTrue(names.contains("F/H.java"));
@@ -51,6 +53,7 @@ public class MainTests {
 		assertTrue(names.contains("B.java"));
 	}
 	@Test
+	// expect readFileToString() as same as the thing contain in the .java file
 	public void readability() throws IOException {
 		String pathname = DIRPATH + File.separator + "f1" + File.separator + "A.java";
 		Main.getFilesInDir(pathname, streams, names);
