@@ -59,7 +59,7 @@ public class Main {
 		while (!streams.isEmpty()) {
 			String source = readFileToString(streams.pop());
 
-			ASTParser parser = ASTParser.newParser(AST.JLS8);
+			ASTParser parser = ASTParser.newParser(AST.JLS9);
 			parser.setResolveBindings(true);
 			parser.setKind(ASTParser.K_COMPILATION_UNIT);
 

@@ -118,11 +118,11 @@ public class MainTests {
 		assertEquals(i[1], 1);
 	}
 	
-	
+	@Test
 	public void wholeThing2() throws IOException {
 		String pathname = DIRPATH+ File.separator + "f2";
 		CountingVisitor v = CountingVisitor.getTheTing();
-		int i;
+		int[] i;
 		List<int[]> count;
 		List<String> types;
 		Main.getFilesInDir(pathname, streams, names);
@@ -130,7 +130,96 @@ public class MainTests {
 		count = v.getCounts();
 		types = v.getJavaType();
 		assertEquals(count.size(), types.size());
-		assertEquals(count.size(), 9);
+		assertEquals(count.size(), 6);
+		
+		assertTrue(types.contains("int"));
+		i = count.get(types.indexOf("int"));
+		assertEquals(i[0], 0);
+		assertEquals(i[1], 1);
+		
+		assertTrue(types.contains("Yas"));
+		i = count.get(types.indexOf("Yas"));
+		assertEquals(i[0], 1);
+		assertEquals(i[1], 0);
+		
+		assertTrue(types.contains("java.lang.String"));
+		i = count.get(types.indexOf("java.lang.String"));
+		assertEquals(i[0], 0);
+		assertEquals(i[1], 3);
+		
+		assertTrue(types.contains("Stuff"));
+		i = count.get(types.indexOf("Stuff"));
+		assertEquals(i[0], 2);
+		assertEquals(i[1], 0);
+		
+		assertTrue(types.contains("Stuff.OK"));
+		i = count.get(types.indexOf("Stuff.OK"));
+		assertEquals(i[0], 1);
+		assertEquals(i[1], 3);
+		
+		assertTrue(types.contains("negation.Nope"));
+		i = count.get(types.indexOf("negation.Nope"));
+		assertEquals(i[0], 1);
+		assertEquals(i[1], 2);
+	}
+	
+	@Test
+	public void wholeThing3() throws IOException {
+		String pathname = DIRPATH+ File.separator + "f3";
+		CountingVisitor v = CountingVisitor.getTheTing();
+		int[] i;
+		List<int[]> count;
+		List<String> types;
+		Main.getFilesInDir(pathname, streams, names);
+		Main.parseAll((Stack<InputStream>)streams, (Stack<String>)names, pathname);
+		count = v.getCounts();
+		types = v.getJavaType();
+		assertEquals(count.size(), types.size());
+		System.out.println("---printing types below---");
+		for (String t : types){
+			System.out.println(t);
+		}
+		assertEquals(count.size(), 8);
+		
+		assertTrue(types.contains("A"));
+		i = count.get(types.indexOf("A"));
+		assertEquals(i[0], 1);
+		assertEquals(i[1], 0);
+		
+		assertTrue(types.contains("B"));
+		i = count.get(types.indexOf("B"));
+		assertEquals(i[0], 1);
+		assertEquals(i[1], 9);
+		
+		assertTrue(types.contains("C"));
+		i = count.get(types.indexOf("C"));
+		assertEquals(i[0], 1);
+		assertEquals(i[1], 5);
+		
+		assertTrue(types.contains("D"));
+		i = count.get(types.indexOf("D"));
+		assertEquals(i[0], 1);
+		assertEquals(i[1], 0);
+		
+		assertTrue(types.contains("D.E"));
+		i = count.get(types.indexOf("D.E"));
+		assertEquals(i[0], 1);
+		assertEquals(i[1], 2);
+		
+		//it should not be there
+		assertFalse(types.contains("E"));
+		
+		assertTrue(types.contains("foo.E"));
+		i = count.get(types.indexOf("foo.E"));
+		assertEquals(i[0], 1);
+		assertEquals(i[1], 4);
+		
+		assertFalse(types.contains("F"));
+		
+		assertTrue(types.contains("int"));
+		i = count.get(types.indexOf("int"));
+		assertEquals(i[0], 0);
+		assertEquals(i[1], 1);
 	}
 	
 }

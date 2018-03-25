@@ -87,6 +87,16 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
         checkDeclarations(name);
         return true;
     }
+    public boolean visit(AnnotationTypeDeclaration node) {
+    	String name = node.resolveBinding().getQualifiedName();
+    	checkDeclarations(name);
+    	return true;
+    }
+    public boolean visit(EnumConstantDeclaration node) {
+    	String name = node.resolveConstructorBinding().getDeclaringClass().getQualifiedName();
+    	checkDeclarations(name);
+    	return true;
+    }
     
     public boolean visit(ImportDeclaration node) {
     	String name = node.resolveBinding().getName();
@@ -109,20 +119,19 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     	}
     	else if(!(typeName.equals("void")))
     		checkRef(typeName);
-    	
-    	ITypeBinding[] parmTypeBindings = node.resolveBinding().getParameterTypes();
-    	if(parmTypeBindings.length != 0) {
-    		for(ITypeBinding i : parmTypeBindings) {
-    			checkRef(i.getName());
-    		}
-    	}
+    	return true;
+    }
+    
+    public boolean visit(SingleVariableDeclaration node) {
+    	String name = node.getType().resolveBinding().getQualifiedName();
+    	checkRef(name);
     	return true;
     }
 
     @Override
     public boolean visit(PrimitiveType node) {
         String name = node.getPrimitiveTypeCode().toString();
-        if(!(node.getParent() instanceof SingleVariableDeclaration))	//because counted in methoddeclaration already
+        if(!(node.getParent() instanceof SingleVariableDeclaration))	//because counted already
         	checkRef(name);
         return true;
     }
