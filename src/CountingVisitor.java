@@ -92,7 +92,6 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
         	System.out.println("IMPORTANT" + n.getClass());
             checkRef(((SimpleType)n).resolveBinding().getQualifiedName());
         }
-        checkRef(node.resolveBinding().getQualifiedName());
     	return true;
     }
 
