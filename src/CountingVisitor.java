@@ -81,13 +81,17 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     }
     
     public boolean visit(FieldDeclaration node) {
-    	//TODO: gotta do the ting
+        String name = node.getType().resolveBinding().getQualifiedName();
+        checkRef(name);
     	return true;
     }
     
     public boolean visit(ParameterizedType node) {
-    	//TODO: gotta do the ting
-    	//TODO: he gives what he wants for this in the discussion board, cant remember where
+        String name = node.getClass().getGenericSuperclass().toString();
+        checkRef(name);
+
+        String param = node.resolveBinding().getQualifiedName();
+        checkRef(param);
     	return true;
     }
 
