@@ -7,14 +7,14 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
 
 	private static CountingVisitor thatOneInstance = new CountingVisitor();
 	
-    private List<int[]> counts;		//index 0, declarations; index 1, references
+    private List<int[]> counts;		// index 0, declarations; index 1, references
     private List<String> types;
     
-    public static CountingVisitor getTheTing() {
+    public static CountingVisitor getTheTing() {		// return thatOneInstance
     	return thatOneInstance;
     }
     
-    public static void reset() {
+    public static void reset() {						// reset thatOneInstance (clean counts, types) 
     	thatOneInstance = new CountingVisitor();
     }
 
@@ -23,39 +23,39 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
         types = new ArrayList<String>();
     }
 
-    public List<int[]> getCounts() {
+    public List<int[]> getCounts() {		// return counts list 
         return counts;
     }
 
-    public List<String> getJavaType() {
+    public List<String> getJavaType() {		// return types list
         return types;
     }
 
     private void checkDeclarations(String typeName) {
         if(types.contains(typeName)) {
-            int i = types.indexOf(typeName);
-            counts.get(i)[0]++;
+            int i = types.indexOf(typeName);	// if this type is already contain in the list
+            counts.get(i)[0]++;					// increment the count of this type
         }
         else {
-            types.add(typeName);
+            types.add(typeName);				//if this is a new type, store it in both type and count
             counts.add(new int[] {1, 0});
         }
     }
     
     private void checkRef(String name) {
     	if(types.contains(name)){
-            int i = types.indexOf(name);
+            int i = types.indexOf(name);		//if this type is already contain in the list, increment the count of this type
             counts.get(i)[1]++;
         }
-        else {
-        	types.add(name);
+        else {	
+        	types.add(name);					//if this is a new type, store it in both type and count
         	counts.add(new int[] {0, 1});
         }
     }
     
     public void preVisit(ASTNode node) {
     	System.out.println("Node: " + node.getClass());
-    	if(node.getParent() != null)
+    	if(node.getParent() != null)			// check if the node have parent
     		System.out.println("Parent: " + node.getParent().getClass());
     	else
     		System.out.println("No Parent");
@@ -72,6 +72,8 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     }
 
     @Override
+    // get the type name of the node
+    // check it in reference
     public boolean visit(VariableDeclarationStatement node) {
         String typeName = node.getType().resolveBinding().getQualifiedName();
 
@@ -80,12 +82,16 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
         return true;
     }
     
+    // get the name of the node
+    // check it in reference
     public boolean visit(FieldDeclaration node) {
         String name = node.getType().resolveBinding().getQualifiedName();
         checkRef(name);
     	return true;
     }
     
+    
+    //
     public boolean visit(ParameterizedType node) {
         List<?> nodes = node.typeArguments();
         for (Object n : nodes) {
@@ -95,34 +101,45 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     	return true;
     }
 
+    // check this node in declaration
+    // if it is already in type, increment the count of the type
+    // if it is not in type, store it in type
     public boolean visit(TypeDeclaration node) {
         String name = node.resolveBinding().getQualifiedName();
         checkDeclarations(name);
         return true;
     }
+    // annotation type
     public boolean visit(AnnotationTypeDeclaration node) {
     	String name = node.resolveBinding().getQualifiedName();
     	checkDeclarations(name);
     	return true;
     }
+    // enum constant
     public boolean visit(EnumConstantDeclaration node) {
     	String name = node.resolveConstructorBinding().getDeclaringClass().getQualifiedName();
     	checkDeclarations(name);
     	return true;
     }
     
+    
+    // check this node in reference
+    // if it is already in type, increment the count of the type
+    // if it is not in type, store it in type
     public boolean visit(ImportDeclaration node) {
     	String name = node.resolveBinding().getName();
     	checkRef(name);
     	return true;
     }
     
+    // class instance creation type
     public boolean visit(ClassInstanceCreation node) {
     	String name = node.resolveTypeBinding().getQualifiedName();
     	checkRef(name);
     	return true;
     }
     
+    // method declaration
     public boolean visit(MethodDeclaration node) {
     	String typeName = node.resolveBinding().getReturnType().getQualifiedName();
     	
@@ -135,6 +152,7 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     	return true;
     }
     
+    // single variable declaration
     public boolean visit(SingleVariableDeclaration node) {
     	String name = node.getType().resolveBinding().getQualifiedName();
     	checkRef(name);
@@ -142,6 +160,7 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     }
 
     @Override
+    // primitive type
     public boolean visit(PrimitiveType node) {
         String name = node.getPrimitiveTypeCode().toString();
         if(!(node.getParent() instanceof SingleVariableDeclaration))	//because counted already
