@@ -87,11 +87,11 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     }
     
     public boolean visit(ParameterizedType node) {
-        String name = node.getClass().getGenericSuperclass().toString();
-        checkRef(name);
-
-        String param = node.resolveBinding().getQualifiedName();
-        checkRef(param);
+        List nodes = node.typeArguments();
+        for (Object n : nodes) {
+            checkRef(((ASTNode)n).getClass().toString());
+        }
+        checkRef(node.resolveBinding().getQualifiedName());
     	return true;
     }
 
