@@ -75,7 +75,7 @@ public class MainTests {
 		for (String t : types){
 			System.out.println(t);
 		}
-		//assertEquals(count.size(), 8);
+		assertEquals(count.size(), 8);
 		
 		assertTrue(types.contains("A"));
 		i = count.get(types.indexOf("A"));

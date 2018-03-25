@@ -87,23 +87,11 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
         checkDeclarations(name);
         return true;
     }
-
-    @Override
-    public boolean visit(SimpleName node) {
-
-        String name = node.resolveBinding().getName();
-        
-        if (!(node.getParent() instanceof TypeDeclaration)) {
-            if ((node.getParent().getParent() instanceof CompilationUnit)) {
-                if (node.getParent() instanceof ImportDeclaration) { // check if it's an 'import' statement
-                	checkRef(name);
-                }
-
-            }
-        }
-        
-        
-        return true;
+    
+    public boolean visit(ImportDeclaration node) {
+    	String name = node.resolveBinding().getName();
+    	checkRef(name);
+    	return true;
     }
     
     public boolean visit(ClassInstanceCreation node) {
@@ -125,7 +113,7 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     	ITypeBinding[] parmTypeBindings = node.resolveBinding().getParameterTypes();
     	if(parmTypeBindings.length != 0) {
     		for(ITypeBinding i : parmTypeBindings) {
-    			checkRef(i.getQualifiedName());
+    			checkRef(i.getName());
     		}
     	}
     	return true;
