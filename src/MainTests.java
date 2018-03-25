@@ -14,7 +14,7 @@ import org.junit.Test;
 
 public class MainTests {
 	
-	private static final String DIRPATH = "E:\\Parva\\Documents\\GitHub\\SENG300A2\\TestFiles";
+	private static final String DIRPATH = "YOUR PATH HERE\\SENG300A2\\TestFiles";
 	private List<InputStream> streams;
 	private List<String> names;
 	
@@ -75,6 +75,7 @@ public class MainTests {
 		for (String t : types){
 			System.out.println(t);
 		}
+		System.out.println("---types end---");
 		assertEquals(count.size(), 8);
 		
 		assertTrue(types.contains("A"));
@@ -130,6 +131,11 @@ public class MainTests {
 		count = v.getCounts();
 		types = v.getJavaType();
 		assertEquals(count.size(), types.size());
+		System.out.println("---printing types below---");
+		for (String t : types){
+			System.out.println(t);
+		}
+		System.out.println("---types end---");
 		assertEquals(count.size(), 6);
 		
 		assertTrue(types.contains("int"));
@@ -145,7 +151,7 @@ public class MainTests {
 		assertTrue(types.contains("java.lang.String"));
 		i = count.get(types.indexOf("java.lang.String"));
 		assertEquals(i[0], 0);
-		assertEquals(i[1], 3);
+		assertEquals(i[1], 4);
 		
 		assertTrue(types.contains("Stuff"));
 		i = count.get(types.indexOf("Stuff"));
@@ -179,6 +185,7 @@ public class MainTests {
 		for (String t : types){
 			System.out.println(t);
 		}
+		System.out.println("---types end---");
 		assertEquals(count.size(), 8);
 		
 		assertTrue(types.contains("A"));

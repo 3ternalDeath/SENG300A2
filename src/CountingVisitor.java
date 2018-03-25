@@ -80,7 +80,16 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
         return true;
     }
     
+    public boolean visit(FieldDeclaration node) {
+    	//TODO: gotta do the ting
+    	return true;
+    }
     
+    public boolean visit(ParameterizedType node) {
+    	//TODO: gotta do the ting
+    	//TODO: he gives what he wants for this in the discussion board, cant remember where
+    	return true;
+    }
 
     public boolean visit(TypeDeclaration node) {
         String name = node.resolveBinding().getQualifiedName();

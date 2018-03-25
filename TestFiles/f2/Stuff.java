@@ -4,5 +4,5 @@ public class Stuff{
 		String yep = "no";
 	}
 	public OK hi() {}
-	public class OK{}
+	public class OK{private List<String> indeed;}
 }
