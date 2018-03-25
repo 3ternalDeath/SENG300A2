@@ -23,16 +23,17 @@ public class Main {
 
 	public static final String CLASSPATH = System.getProperty("java.home") + File.separatorChar + "rt.jar";
 
+	// taken an input 'path' from user
 	public static void main(String[] args) {
-		if (args.length < 1)
-			return; // invalid amt of arguments
+		if (args.length < 1)		// if there is no input argument 
+			return; 				// invalid amt of arguments
 
 		Stack<InputStream> streams = new Stack<>();
 		Stack<String> names = new Stack<>();
 		try {
-			if (args[0].endsWith(".jar")) {
+			if (args[0].endsWith(".jar")) {				// if input is a .jar file, read entries in files
 				readJarEntries(args[0], streams, names);
-			} else {
+			} else {									// else it is a directory, read file in it
 				getFilesInDir(args[0], streams, names);
 			}
 
@@ -47,7 +48,7 @@ public class Main {
 		List<String> typeNames = result.getJavaType();
 		List<int[]> counts = result.getCounts();
 
-		while (!typeNames.isEmpty()) {
+		while (!typeNames.isEmpty()) {			// print the result
 			int[] curCount = counts.remove(0);
 			System.out.println(
 					"Type: " + typeNames.remove(0) + " Declarations: " + curCount[0] + " References: " + curCount[1]);
@@ -57,9 +58,9 @@ public class Main {
 
 	public static void parseAll(Stack<InputStream> streams, Stack<String> names, String srcPath) throws IOException {
 		while (!streams.isEmpty()) {
-			String source = readFileToString(streams.pop());
+			String source = readFileToString(streams.pop());		// read the file one by one form the top of the stack
 
-			ASTParser parser = ASTParser.newParser(AST.JLS9);
+			ASTParser parser = ASTParser.newParser(AST.JLS9);		// create ASTParser
 			parser.setResolveBindings(true);
 			parser.setKind(ASTParser.K_COMPILATION_UNIT);
 
@@ -82,7 +83,8 @@ public class Main {
 			cu.accept(CountingVisitor.getTheTing());
 		}
 	}
-
+	
+	// read an file as String as source for the parseAll function
 	public static String readFileToString(InputStream stream) throws IOException {
 		StringBuilder fileData = new StringBuilder(1000);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
@@ -109,7 +111,7 @@ public class Main {
 		while (entries.hasMoreElements()) {
 			JarEntry entry = entries.nextElement();
 			if (entry.getName().endsWith(".java")) {
-				streams.add(jarfile.getInputStream(entry));
+				streams.add(jarfile.getInputStream(entry));			// store .jar file into stack 'steam'
 				names.add(entry.getName());
 			}
 		}
@@ -120,24 +122,24 @@ public class Main {
 			throws IOException {
 		File dir = new File(pathname);
 
-		if (!dir.isDirectory()) {
-			if (!dir.getName().endsWith(".jar")) {
+		if (!dir.isDirectory()) {							// test whether the file denoted by this path is a directory
+			if (!dir.getName().endsWith(".jar")) {			// recheck if the input path is a .jar file 
 				streams.add(new FileInputStream(pathname));
 				names.add(dir.getName());
 			} else
 				readJarEntries(pathname, streams, names);
 			return;
 		}
-
+		// if the path is a directory, then get the .java file name in a stack
 		File[] miniFiles = dir.listFiles();
 
 		for (File f : miniFiles) {
-			if (f.isFile() && f.getName().endsWith(".java")) {
+			if (f.isFile() && f.getName().endsWith(".java")) {		// check if it is .java files
 				streams.add(new FileInputStream(f));
 				names.add(f.getName());
-			} else if (f.isFile() && f.getName().endsWith(".jar"))
+			} else if (f.isFile() && f.getName().endsWith(".jar"))	// check if it is .jar file
 				readJarEntries(f.getCanonicalPath(), streams, names);
-			else if (f.isDirectory())
+			else if (f.isDirectory())								// check if it is an directory
 				getFilesInDir(f.getCanonicalPath(), streams, names);
 
 		}
