@@ -14,7 +14,7 @@ import org.junit.Test;
 
 public class MainTests {
 	
-	private static final String DIRPATH = "YOUR PATH HERE\\SENG300A2\\TestFiles";
+	private static final String DIRPATH = "E:\\Parva\\Documents\\GitHub\\SENG300A2\\TestFiles";
 	private List<InputStream> streams;
 	private List<String> names;
 	
@@ -59,7 +59,7 @@ public class MainTests {
 		assertEquals(Main.readFileToString(streams.get(0)), "class A {}\r\n" + "");
 	}
 	
-	@Test
+	
 	public void wholeThing1() throws IOException {
 		String pathname = DIRPATH+ File.separator + "f1";
 		CountingVisitor v = CountingVisitor.getTheTing();
@@ -136,7 +136,7 @@ public class MainTests {
 			System.out.println(t);
 		}
 		System.out.println("---types end---");
-		assertEquals(count.size(), 6);
+		assertEquals(count.size(), 7);
 		
 		assertTrue(types.contains("int"));
 		i = count.get(types.indexOf("int"));
@@ -163,13 +163,18 @@ public class MainTests {
 		assertEquals(i[0], 1);
 		assertEquals(i[1], 3);
 		
+		assertTrue(types.contains("List"));
+		i = count.get(types.indexOf("List"));
+		assertEquals(i[0], 0);
+		assertEquals(i[1], 1);
+		
 		assertTrue(types.contains("negation.Nope"));
 		i = count.get(types.indexOf("negation.Nope"));
 		assertEquals(i[0], 1);
 		assertEquals(i[1], 2);
 	}
 	
-	@Test
+	
 	public void wholeThing3() throws IOException {
 		String pathname = DIRPATH+ File.separator + "f3";
 		CountingVisitor v = CountingVisitor.getTheTing();

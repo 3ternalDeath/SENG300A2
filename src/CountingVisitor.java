@@ -65,7 +65,7 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     
     private boolean happened = false;
     public void postVisit(ASTNode node) {
-    	if(types.contains("foo.C") && !happened) {
+    	if(types.contains("SimpleType") && !happened) {
     		System.out.println("IT HAS HAPPENED " + node.getClass());
     		happened = true;
     	}
@@ -87,9 +87,10 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     }
     
     public boolean visit(ParameterizedType node) {
-        List nodes = node.typeArguments();
+        List<?> nodes = node.typeArguments();
         for (Object n : nodes) {
-            checkRef(((ASTNode)n).getClass().getSimpleName());
+        	System.out.println("IMPORTANT" + n.getClass());
+            checkRef(((SimpleType)n).resolveBinding().getQualifiedName());
         }
         checkRef(node.resolveBinding().getQualifiedName());
     	return true;
