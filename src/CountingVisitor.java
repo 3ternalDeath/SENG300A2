@@ -52,23 +52,35 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
         	counts.add(new int[] {0, 1});
         }
     }
+    
+    public void preVisit(ASTNode node) {
+    	System.out.println("Node: " + node.getClass());
+    	if(node.getParent() != null)
+    		System.out.println("Parent: " + node.getParent().getClass());
+    	else
+    		System.out.println("No Parent");
+    	System.out.println(node);
+    	System.out.println("-----------");
+    }
+    
+    private boolean happened = false;
+    public void postVisit(ASTNode node) {
+    	if(types.contains("foo.C") && !happened) {
+    		System.out.println("IT HAS HAPPENED " + node.getClass());
+    		happened = true;
+    	}
+    }
 
     @Override
-    public boolean visit(VariableDeclarationFragment node) {
-        String typeSimpleName;
+    public boolean visit(VariableDeclarationStatement node) {
+        String typeName = node.getType().resolveBinding().getQualifiedName();
 
-        if (node.getParent() instanceof VariableDeclarationStatement
-                && !(node.getParent().getParent() instanceof Block)) {
-
-            VariableDeclarationStatement declaration = (VariableDeclarationStatement) node.getParent();
-            typeSimpleName = declaration.getType().resolveBinding().getQualifiedName();
-
-            checkRef(typeSimpleName);
-
-        }
+        checkRef(typeName);
 
         return true;
     }
+    
+    
 
     public boolean visit(TypeDeclaration node) {
         String name = node.resolveBinding().getQualifiedName();
@@ -79,43 +91,51 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     @Override
     public boolean visit(SimpleName node) {
 
-        String name = node.getFullyQualifiedName();
-
-        if (types.contains(name) && !(node.getParent() instanceof TypeDeclaration)) {
-            int i = types.indexOf(name);
-
+        String name = node.resolveBinding().getName();
+        
+        if (!(node.getParent() instanceof TypeDeclaration)) {
             if ((node.getParent().getParent() instanceof CompilationUnit)) {
-
                 if (node.getParent() instanceof ImportDeclaration) { // check if it's an 'import' statement
-                    counts.get(i)[1]++;
+                	checkRef(name);
                 }
 
-            } else {
-                counts.get(i)[1]++;
             }
         }
-
-        if (node.getParent() instanceof TypeDeclaration) {
-
-            if (node.getParent().getParent() instanceof TypeDeclaration) { // if this node is an inner-class
-                // get the fullname of the innerclass with its parent, separate with a period (Foo.Bar)
-                String parentClass = ((TypeDeclaration) node.getParent().getParent()).getName().toString();
-                String innerClass = node.getFullyQualifiedName();
-                String fullname = parentClass + "." + innerClass;
-
-                checkDeclarations(fullname);
-            }
-        }
+        
+        
         return true;
+    }
+    
+    public boolean visit(ClassInstanceCreation node) {
+    	String name = node.resolveTypeBinding().getQualifiedName();
+    	checkRef(name);
+    	return true;
+    }
+    
+    public boolean visit(MethodDeclaration node) {
+    	String typeName = node.resolveBinding().getReturnType().getQualifiedName();
+    	
+    	if(node.resolveBinding().isConstructor()) {
+    		typeName = node.resolveBinding().getDeclaringClass().getQualifiedName();
+    		checkDeclarations(typeName);
+    	}
+    	else if(!(typeName.equals("void")))
+    		checkRef(typeName);
+    	
+    	ITypeBinding[] parmTypeBindings = node.resolveBinding().getParameterTypes();
+    	if(parmTypeBindings.length != 0) {
+    		for(ITypeBinding i : parmTypeBindings) {
+    			checkRef(i.getQualifiedName());
+    		}
+    	}
+    	return true;
     }
 
     @Override
     public boolean visit(PrimitiveType node) {
         String name = node.getPrimitiveTypeCode().toString();
-        if(types.contains(name)){
-            int i = types.indexOf(name);
-            counts.get(i)[1]++;
-        }
+        if(!(node.getParent() instanceof SingleVariableDeclaration))	//because counted in methoddeclaration already
+        	checkRef(name);
         return true;
     }
 }
