@@ -52,24 +52,6 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
         	counts.add(new int[] {0, 1});
         }
     }
-    
-    public void preVisit(ASTNode node) {
-    	System.out.println("Node: " + node.getClass());
-    	if(node.getParent() != null)			// check if the node have parent
-    		System.out.println("Parent: " + node.getParent().getClass());
-    	else
-    		System.out.println("No Parent");
-    	System.out.println(node);
-    	System.out.println("-----------");
-    }
-    
-    private boolean happened = false;
-    public void postVisit(ASTNode node) {
-    	if(types.contains("SimpleType") && !happened) {
-    		System.out.println("IT HAS HAPPENED " + node.getClass());
-    		happened = true;
-    	}
-    }
 
     @Override
     // get the type name of the node
@@ -95,7 +77,6 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     public boolean visit(ParameterizedType node) {
         List<?> nodes = node.typeArguments();
         for (Object n : nodes) {
-        	System.out.println("IMPORTANT" + n.getClass());
             checkRef(((SimpleType)n).resolveBinding().getQualifiedName());
         }
     	return true;
@@ -163,8 +144,11 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     // primitive type
     public boolean visit(PrimitiveType node) {
         String name = node.getPrimitiveTypeCode().toString();
-        if(!(node.getParent() instanceof SingleVariableDeclaration))	//because counted already
-        	checkRef(name);
+        if(!(node.getParent() instanceof SingleVariableDeclaration))			//because counted already
+        	if(!(node.getParent() instanceof FieldDeclaration))					//same
+        		if(!(node.getParent() instanceof VariableDeclarationStatement))	//same
+        			checkRef(name);												//is there even a point to this visit?
+        																		//not realy, just keep it since diagrams are done alredy
         return true;
     }
 }
