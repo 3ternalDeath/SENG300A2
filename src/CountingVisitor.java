@@ -43,7 +43,7 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     }
 
     public String finStuff() {
-    	return(all + "," + nested + "," + local + "," + anonymous + "," + annotation);
+    	return(all + "\t" + nested + "\t" + local + "\t" + anonymous + "\t" + annotation);
     }
     
     private void checkDeclarations(String typeName) {
