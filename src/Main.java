@@ -53,6 +53,7 @@ public class Main {
 			System.out.println(
 					"Type: " + typeNames.remove(0) + " Declarations: " + curCount[0] + " References: " + curCount[1]);
 		}
+		System.out.println(result.finStuff());
 
 	}
 

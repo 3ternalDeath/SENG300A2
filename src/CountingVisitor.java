@@ -8,12 +8,12 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
 	
     private List<int[]> counts;		// index 0, declarations; index 1, references
     private List<String> types;
+    private int all;
     private int nested;
     private int local;
     private int anonymous;
     private int annotation;
     private int enums;
-    private int para;
     
     public static CountingVisitor getTheTing() {		// return thatOneInstance
     	return thatOneInstance;
@@ -31,7 +31,7 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
         anonymous = 0;
         annotation = 0;
         enums = 0;
-        para = 0;
+        all = 0;
     }
 
     public List<int[]> getCounts() {		// return counts list 
@@ -42,6 +42,10 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
         return types;
     }
 
+    public String finStuff() {
+    	return(all + "," + nested + "," + local + "," + anonymous + "," + annotation);
+    }
+    
     private void checkDeclarations(String typeName) {
         if(types.contains(typeName)) {
             int i = types.indexOf(typeName);	// if this type is already contain in the list
@@ -69,7 +73,7 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     // check it in reference
     public boolean visit(VariableDeclarationStatement node) {
         String typeName = node.getType().resolveBinding().getQualifiedName();
-
+        System.out.println("varbl:" + typeName);
         checkRef(typeName);
 
         return true;
@@ -79,6 +83,7 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     // check it in reference
     public boolean visit(FieldDeclaration node) {
         String name = node.getType().resolveBinding().getQualifiedName();
+        System.out.println("field:" + name);
         checkRef(name);
     	return true;
     }
@@ -88,17 +93,19 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     public boolean visit(ParameterizedType node) {
         List<?> nodes = node.typeArguments();
         for (Object n : nodes) {
+        	String name;
         	if(n instanceof ArrayType) {
-        		checkRef(((ArrayType)n).resolveBinding().getQualifiedName());
+        		name = ((ArrayType)n).resolveBinding().getQualifiedName();
         	}
         	else if(n instanceof WildcardType) {
-        		checkRef(((WildcardType)n).resolveBinding().getQualifiedName());
+        		name = ((WildcardType)n).resolveBinding().getQualifiedName();
         	}
         	else {
-        		checkRef(((SimpleType)n).resolveBinding().getQualifiedName());
+        		name = ((SimpleType)n).resolveBinding().getQualifiedName();
         	}
+        	checkRef(name);	
         }
-        para++;
+        all++;
     	return true;
     }
 
@@ -113,6 +120,7 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
         	nested++;
         if(parent instanceof MethodDeclaration)
         	local++;
+        all++;
         return true;
     }
     // annotation type
@@ -120,6 +128,7 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     	String name = node.resolveBinding().getQualifiedName();
     	checkDeclarations(name);
     	annotation++;
+    	all++;
     	return true;
     }
     // enum constant
@@ -127,11 +136,13 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     	String name = node.resolveBinding().getDeclaringClass().getQualifiedName();
     	checkDeclarations(name);
     	enums++;
+    	all++;
     	return true;
     }
     
     public boolean visit(AnonymousClassDeclaration node) {
     	anonymous++;
+    	all++;
     	return true;
     }
     
