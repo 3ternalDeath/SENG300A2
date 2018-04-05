@@ -72,9 +72,12 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     // get the type name of the node
     // check it in reference
     public boolean visit(VariableDeclarationStatement node) {
-        String typeName = node.getType().resolveBinding().getQualifiedName();
-        System.out.println("varbl:" + typeName);
-        checkRef(typeName);
+        if (node.getType().resolveBinding() != null) {
+            String typeName = node.getType().resolveBinding().getQualifiedName();
+            System.out.println("varbl:" + typeName);
+            checkRef(typeName);
+
+        }
 
         return true;
     }
@@ -82,9 +85,12 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     // get the name of the node
     // check it in reference
     public boolean visit(FieldDeclaration node) {
-        String name = node.getType().resolveBinding().getQualifiedName();
-        System.out.println("field:" + name);
-        checkRef(name);
+        if (node.getType().resolveBinding() != null) {
+            String name = node.getType().resolveBinding().getQualifiedName();
+            System.out.println("field:" + name);
+            checkRef(name);
+        }
+
     	return true;
     }
     
@@ -113,14 +119,17 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     // if it is already in type, increment the count of the type
     // if it is not in type, store it in type
     public boolean visit(TypeDeclaration node) {
-        String name = node.resolveBinding().getQualifiedName();
-        checkDeclarations(name);
-        ASTNode parent = node.getParent();
-        if(parent instanceof TypeDeclaration)
-        	nested++;
-        if(parent instanceof MethodDeclaration)
-        	local++;
-        all++;
+        if (node.resolveBinding() != null) {
+            String name = node.resolveBinding().getQualifiedName();
+            checkDeclarations(name);
+            ASTNode parent = node.getParent();
+            if(parent instanceof TypeDeclaration)
+                nested++;
+            if(parent instanceof MethodDeclaration)
+                local++;
+            all++;
+        }
+
         return true;
     }
     // annotation type
@@ -151,19 +160,22 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     // if it is already in type, increment the count of the type
     // if it is not in type, store it in type
     public boolean visit(ImportDeclaration node) {
-    	String name = node.resolveBinding().getName();
-    	checkRef(name);
+        if (node.resolveBinding() != null) {
+            String name = node.resolveBinding().getName();
+            checkRef(name);
+        }
+
     	return true;
     }
     
     // class instance creation type
     public boolean visit(ClassInstanceCreation node) {
-    	String name;
+    	String name = "";
     	if(node.resolveTypeBinding() != null)
     		name = node.resolveTypeBinding().getQualifiedName();
     	else if(node.resolveConstructorBinding() != null)
     		name = node.resolveConstructorBinding().getName();
-    	else
+    	else if (node.getType().resolveBinding() != null)
     		name = node.getType().resolveBinding().getQualifiedName();
     	checkRef(name);
     	return true;
@@ -171,21 +183,26 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     
     // method declaration
     public boolean visit(MethodDeclaration node) {
-    	String typeName = node.resolveBinding().getReturnType().getQualifiedName();
-    	
-    	if(node.resolveBinding().isConstructor()) {
-    		typeName = node.resolveBinding().getDeclaringClass().getQualifiedName();
-    		checkDeclarations(typeName);
-    	}
-    	else if(!(typeName.equals("void")))
-    		checkRef(typeName);
+        if (node.resolveBinding() != null ) {
+            String typeName = node.resolveBinding().getReturnType().getQualifiedName();
+
+            if(node.resolveBinding().isConstructor()) {
+                typeName = node.resolveBinding().getDeclaringClass().getQualifiedName();
+                checkDeclarations(typeName);
+            }
+            else if(!(typeName.equals("void")))
+                checkRef(typeName);
+        }
+
     	return true;
     }
     
     // single variable declaration
     public boolean visit(SingleVariableDeclaration node) {
-    	String name = node.getType().resolveBinding().getQualifiedName();
-    	checkRef(name);
+        if (node.getType().resolveBinding() != null) {
+            String name = node.getType().resolveBinding().getQualifiedName();
+            checkRef(name);
+        }
     	return true;
     }
 
