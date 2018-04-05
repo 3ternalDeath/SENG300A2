@@ -109,7 +109,7 @@ public class Visitor extends ASTVisitor{
 	//5. AnonymousClass Declaration
 	@Override
 	public boolean visit(AnonymousClassDeclaration node) {
-		//countDeclaration(getBindingName(node));
+		countDeclaration(getBindingName(node));
 		counter.incAnonymous();
     	counter.incAll();
     	return super.visit(node);

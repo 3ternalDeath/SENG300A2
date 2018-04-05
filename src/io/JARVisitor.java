@@ -43,7 +43,7 @@ public class JARVisitor {
 				    BufferedReader reader = new BufferedReader(isr);
 				    String line = reader.readLine();
 					while (line != null) {
-						content += line;
+						content +=  "\n"+ line;
 						line = reader.readLine();
 					}
 					sources.add(content);

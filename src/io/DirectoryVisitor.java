@@ -40,7 +40,7 @@ public class DirectoryVisitor {
 					BufferedReader reader = new BufferedReader(fr);
 					String line = reader.readLine();
 					while (line != null) {
-						content += line;
+						content += "\n"+ line;
 						line = reader.readLine();
 					}
 					sources.add(content);
