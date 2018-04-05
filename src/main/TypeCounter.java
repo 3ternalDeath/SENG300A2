@@ -38,6 +38,6 @@ public class TypeCounter {
 	}
 	public String toString() {
 		return "All:" + all + "\tNested:" + nested + "\tLocal: " + local +
-				"\tAnonymous: " + anonymous + "\tAnnotation: " + annotation + "\tEnums: " + enums;
+				"\tAnonymous: " + anonymous + "\tAnnotation: " + annotation;
 	}
 }
