@@ -60,7 +60,7 @@ public class Main {
 		
 		for(String truekey: keyset) {
 			System.out.printf(
-					"%s.\nDeclarations found: %s;\treferences found: %s\n\n",
+					"%s\nDeclarations found: %s;\treferences found: %s\n---\n",
 					truekey, finalMap.get(truekey)[0], finalMap.get(truekey)[1] );
 		}
 		//Print
