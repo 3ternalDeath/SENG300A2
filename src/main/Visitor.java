@@ -1,6 +1,8 @@
 package main;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jdt.core.dom.*;
@@ -12,7 +14,8 @@ import org.eclipse.jdt.core.dom.*;
  */
 public class Visitor extends ASTVisitor{
 	Map<String, Integer[]> map = new HashMap<String, Integer[]>();
-	
+	//AllTypes	NestedTypes	LocalTypes	AnonymousTypes	AnnotationTypes	OtherTypes
+	TypeCounter counter = TypeCounter.getInstance();
 	public Map<String, Integer[]> getMap(){
 		return map;
 	}
@@ -28,19 +31,37 @@ public class Visitor extends ASTVisitor{
 		else count = new Integer[] {1,0};
 		map.put(key, count);
 	}
+	private String getBindingName(ASTNode node) {
+			if(node instanceof Type) {
+				if(((Type) node).resolveBinding() == null) return node.toString();
+				else if (((Type) node).resolveBinding().getQualifiedName().isEmpty())
+					return ((Type) node).resolveBinding().getName();
+				else
+					return ((Type) node).resolveBinding().getQualifiedName();
+			}
+			else if(node instanceof AbstractTypeDeclaration){
+				if(((AbstractTypeDeclaration) node).resolveBinding() == null) return node.toString();
+				else if (((AbstractTypeDeclaration) node).resolveBinding().getQualifiedName().isEmpty())
+					return ((AbstractTypeDeclaration) node).resolveBinding().getName();
+				else
+					return ((AbstractTypeDeclaration) node).resolveBinding().getQualifiedName();
+			}
+			return node.toString();
+	}
 	//--------------------------------------------------------------
 	//References
 	//Visits when there is a primitive type (int, char, ...)
 	@Override
 	public boolean visit(PrimitiveType node) {
-		if(!node.toString().equals("void"))
-			countReference(node.resolveBinding().getQualifiedName());
+		if(!node.toString().equals("void")) {
+			countReference(getBindingName(node));
+		}
 		return super.visit(node);
 	}
 	//Visits when there is a SimpleType type (non-Primitive types like java.lang.String)
 	@Override
 	public boolean visit(SimpleType node) {
-		String key = node.resolveBinding().getQualifiedName();
+		String key = getBindingName(node);
 		//Not sure though
 		if(node.getParent().toString().endsWith("[]"))
 			key += "[]";
@@ -49,7 +70,7 @@ public class Visitor extends ASTVisitor{
 	}
 	@Override
 	public boolean visit(MarkerAnnotation node) {
-		countReference(node.resolveTypeBinding().getQualifiedName());
+		countReference(getBindingName(node));
 		return super.visit(node);
 	}
 	
@@ -58,31 +79,45 @@ public class Visitor extends ASTVisitor{
 	//1-1. AnnotationType declaration
 	@Override
 	public boolean visit(AnnotationTypeDeclaration node) {
-		countDeclaration(node.resolveBinding().getQualifiedName());
+		countDeclaration(getBindingName(node));
+		counter.incAnnotation();
+		counter.incAll();
 		return super.visit(node);
 	}
 
 	//2. Enum declaration
 	@Override
 	public boolean visit(EnumDeclaration node) {
-		countDeclaration(node.resolveBinding().getQualifiedName());
+		countDeclaration(getBindingName(node));
+		counter.incEnums();
+		counter.incAll();
 		return super.visit(node);
 	}
 	//3-4. Class / Interface declaration
 	@Override
 	public boolean visit(TypeDeclaration node) {
-		String key;
-		if(node.resolveBinding().getQualifiedName().isEmpty())
-			key= node.resolveBinding().getName();
-		else
-			key = node.resolveBinding().getQualifiedName();
-		countDeclaration(key);
+		countDeclaration(getBindingName(node));
+		
+		if(node.getParent() instanceof TypeDeclaration)
+			counter.incNested();
+        if(node.getParent() instanceof MethodDeclaration)
+        	counter.incLocal();
+        
+        counter.incAll();
 		return super.visit(node);
 	}
-	//5. Import Declaration
+	//5. AnonymousClass Declaration
+	@Override
+	public boolean visit(AnonymousClassDeclaration node) {
+		//countDeclaration(getBindingName(node));
+		counter.incAnonymous();
+    	counter.incAll();
+    	return super.visit(node);
+    }
+	//Import Declaration //should be counting as references
 	@Override
 	public boolean visit(ImportDeclaration node) {
-		countDeclaration(node.resolveBinding().getName());
+		countReference(getBindingName(node));
 		return super.visit(node);
 	}
 	

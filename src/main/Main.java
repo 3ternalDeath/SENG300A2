@@ -32,8 +32,7 @@ public class Main {
 	 */
 	public Main(String dir) {
 		BASEDIR = dir;
-		Map<String, Integer[]> finalMap = new HashMap();
-		File directory = new File(dir);
+		Map<String, Integer[]> finalMap = new HashMap<String, Integer[]>();
 		JavaSourceCollector jsc = new JavaSourceCollector(dir);
 		List<String> sourceList = null;
 		try {
@@ -41,8 +40,8 @@ public class Main {
 		}catch (Exception e) { e.printStackTrace(); }
 		
 		for(String source : sourceList) {
-			if(source.trim().startsWith("//"))continue;
-			//if(source.split("//").length != 1) source = source.split("//")[0]; 
+			//if(source.trim().startsWith("//"))continue;
+			if(source.split("//").length != 1) source = source.split("//")[0]; 
 			Map<String, Integer[]> SourceMap = visit(parse(source));
 			for(String key : SourceMap.keySet())
 				if(finalMap.get(key) == null)
@@ -53,18 +52,19 @@ public class Main {
 					value[1] += SourceMap.get(key)[1];
 					finalMap.put(key, value);
 				}
-		}	
+		}
 		
-		if(finalMap == null) return;
 		//Sort keys
-		SortedSet<String> keyset = new TreeSet();
+		SortedSet<String> keyset = new TreeSet<String>();
 		keyset.addAll(finalMap.keySet());
 		
 		for(String truekey: keyset) {
 			System.out.printf(
-					"%-30s. Declarations found: %s;\treferences found: %s.\n",
+					"%s.\nDeclarations found: %s;\treferences found: %s\n\n",
 					truekey, finalMap.get(truekey)[0], finalMap.get(truekey)[1] );
 		}
+		//Print
+		System.out.println(TypeCounter.getInstance().toString());
 	}
 	/**
 	 * Parses source String into AST Tree
@@ -88,7 +88,7 @@ public class Main {
 				new String[] {BASEDIR}, new String[]{"UTF-8"}, true);
 		
 		Map<String, String> options = JavaCore.getOptions();
-		options.put(JavaCore.COMPILER_SOURCE, JavaCore.VERSION_1_5); //or newer version
+		options.put(JavaCore.COMPILER_SOURCE, JavaCore.VERSION_1_8); //or newer version
 		parser.setCompilerOptions(options);
 		
 		return parser.createAST(null);
