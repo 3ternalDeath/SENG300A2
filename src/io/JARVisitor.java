@@ -53,7 +53,8 @@ public class JARVisitor {
 			sourcejar.close();
 		} catch (IOException ioe){
 			throw ioe;
-		}
+		} finally {
 		return sources;
+		}
 	}
 }
