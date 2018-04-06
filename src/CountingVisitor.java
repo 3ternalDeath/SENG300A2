@@ -1,12 +1,13 @@
 import java.util.ArrayList;
 import java.util.List;
+
 import org.eclipse.jdt.core.dom.*;
 
 public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
 
-	private static CountingVisitor thatOneInstance = new CountingVisitor();
-	
-    private List<int[]> counts;		// index 0, declarations; index 1, references
+    private static CountingVisitor thatOneInstance = new CountingVisitor();
+
+    private List<int[]> counts;        // index 0, declarations; index 1, references
     private List<String> types;
     private int all;
     private int nested;
@@ -14,13 +15,13 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     private int anonymous;
     private int annotation;
     private int enums;
-    
-    public static CountingVisitor getTheTing() {		// return thatOneInstance
-    	return thatOneInstance;
+
+    public static CountingVisitor getTheTing() {        // return thatOneInstance
+        return thatOneInstance;
     }
-    
-    public static void reset() {						// reset thatOneInstance (clean counts, types) 
-    	thatOneInstance = new CountingVisitor();
+
+    public static void reset() {                        // reset thatOneInstance (clean counts, types)
+        thatOneInstance = new CountingVisitor();
     }
 
     private CountingVisitor() {
@@ -34,37 +35,35 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
         all = 0;
     }
 
-    public List<int[]> getCounts() {		// return counts list 
+    public List<int[]> getCounts() {        // return counts list
         return counts;
     }
 
-    public List<String> getJavaType() {		// return types list
+    public List<String> getJavaType() {        // return types list
         return types;
     }
 
     public String finStuff() {
-    	return(all + "\t" + nested + "\t" + local + "\t" + anonymous + "\t" + annotation);
+        return (all + "\t" + nested + "\t" + local + "\t" + anonymous + "\t" + annotation);
     }
-    
+
     private void checkDeclarations(String typeName) {
-        if(types.contains(typeName)) {
-            int i = types.indexOf(typeName);	// if this type is already contain in the list
-            counts.get(i)[0]++;					// increment the count of this type
-        }
-        else {
-            types.add(typeName);				//if this is a new type, store it in both type and count
-            counts.add(new int[] {1, 0});
+        if (types.contains(typeName)) {
+            int i = types.indexOf(typeName);    // if this type is already contain in the list
+            counts.get(i)[0]++;                    // increment the count of this type
+        } else {
+            types.add(typeName);                //if this is a new type, store it in both type and count
+            counts.add(new int[]{1, 0});
         }
     }
-    
+
     private void checkRef(String name) {
-    	if(types.contains(name)){
-            int i = types.indexOf(name);		//if this type is already contain in the list, increment the count of this type
+        if (types.contains(name)) {
+            int i = types.indexOf(name);        //if this type is already contain in the list, increment the count of this type
             counts.get(i)[1]++;
-        }
-        else {	
-        	types.add(name);					//if this is a new type, store it in both type and count
-        	counts.add(new int[] {0, 1});
+        } else {
+            types.add(name);                    //if this is a new type, store it in both type and count
+            counts.add(new int[]{0, 1});
         }
     }
 
@@ -72,47 +71,57 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
     // get the type name of the node
     // check it in reference
     public boolean visit(VariableDeclarationStatement node) {
-        if (node.getType().resolveBinding() != null) {
-            String typeName = node.getType().resolveBinding().getQualifiedName();
-            System.out.println("varbl:" + typeName);
-            checkRef(typeName);
-
+        try {
+            if (node.getAST().hasResolvedBindings()) {
+                if (node.getType().resolveBinding() != null) {
+                    String typeName = node.getType().resolveBinding().getQualifiedName();
+                    System.out.println("varbl:" + typeName);
+                    checkRef(typeName);
+                }
+            }
+        } catch (NullPointerException e) {
+            e.getMessage();
         }
 
         return true;
     }
-    
+
     // get the name of the node
     // check it in reference
     public boolean visit(FieldDeclaration node) {
-        if (node.getType().resolveBinding() != null) {
-            String name = node.getType().resolveBinding().getQualifiedName();
-            System.out.println("field:" + name);
-            checkRef(name);
+        try {
+            if (node.getType().resolveBinding() != null) {
+                String name = node.getType().resolveBinding().getQualifiedName();
+                System.out.println("field:" + name);
+                checkRef(name);
+            }
+        } catch (NullPointerException e) {
+            e.getMessage();
         }
 
-    	return true;
+        return true;
     }
-    
-    
+
+
     //
     public boolean visit(ParameterizedType node) {
         List<?> nodes = node.typeArguments();
         for (Object n : nodes) {
-        	String name;
-        	if(n instanceof ArrayType) {
-        		name = ((ArrayType)n).resolveBinding().getQualifiedName();
-        	}
-        	else if(n instanceof WildcardType) {
-        		name = ((WildcardType)n).resolveBinding().getQualifiedName();
-        	}
-        	else {
-        		name = ((SimpleType)n).resolveBinding().getQualifiedName();
-        	}
-        	checkRef(name);	
+            String name = "";
+            if (n instanceof ArrayType) {
+                if (((ArrayType) n).resolveBinding() != null)
+                    name = ((ArrayType) n).resolveBinding().getQualifiedName();
+            } else if (n instanceof WildcardType) {
+                if (((WildcardType) n).resolveBinding() != null)
+                    name = ((WildcardType) n).resolveBinding().getQualifiedName();
+            } else if (n instanceof SimpleType) {
+                if (((SimpleType) n).resolveBinding() != null)
+                    name = ((SimpleType) n).resolveBinding().getQualifiedName();
+            }
+            checkRef(name);
         }
         all++;
-    	return true;
+        return true;
     }
 
     // check this node in declaration
@@ -123,39 +132,41 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
             String name = node.resolveBinding().getQualifiedName();
             checkDeclarations(name);
             ASTNode parent = node.getParent();
-            if(parent instanceof TypeDeclaration)
+            if (parent instanceof TypeDeclaration)
                 nested++;
-            if(parent instanceof MethodDeclaration)
+            if (parent instanceof MethodDeclaration)
                 local++;
             all++;
         }
 
         return true;
     }
+
     // annotation type
     public boolean visit(AnnotationTypeDeclaration node) {
-    	String name = node.resolveBinding().getQualifiedName();
-    	checkDeclarations(name);
-    	annotation++;
-    	all++;
-    	return true;
+        String name = node.resolveBinding().getQualifiedName();
+        checkDeclarations(name);
+        annotation++;
+        all++;
+        return true;
     }
+
     // enum constant
     public boolean visit(EnumDeclaration node) {
-    	String name = node.resolveBinding().getDeclaringClass().getQualifiedName();
-    	checkDeclarations(name);
-    	enums++;
-    	all++;
-    	return true;
+        String name = node.resolveBinding().getDeclaringClass().getQualifiedName();
+        checkDeclarations(name);
+        enums++;
+        all++;
+        return true;
     }
-    
+
     public boolean visit(AnonymousClassDeclaration node) {
-    	anonymous++;
-    	all++;
-    	return true;
+        anonymous++;
+        all++;
+        return true;
     }
-    
-    
+
+
     // check this node in reference
     // if it is already in type, increment the count of the type
     // if it is not in type, store it in type
@@ -165,56 +176,57 @@ public class CountingVisitor extends org.eclipse.jdt.core.dom.ASTVisitor {
             checkRef(name);
         }
 
-    	return true;
+        return true;
     }
-    
+
     // class instance creation type
     public boolean visit(ClassInstanceCreation node) {
-    	String name = "";
-    	if(node.resolveTypeBinding() != null)
-    		name = node.resolveTypeBinding().getQualifiedName();
-    	else if(node.resolveConstructorBinding() != null)
-    		name = node.resolveConstructorBinding().getName();
-    	else if (node.getType().resolveBinding() != null)
-    		name = node.getType().resolveBinding().getQualifiedName();
-    	checkRef(name);
-    	return true;
+        String name = "";
+        if (node.resolveTypeBinding() != null)
+            name = node.resolveTypeBinding().getQualifiedName();
+        else if (node.resolveConstructorBinding() != null)
+            name = node.resolveConstructorBinding().getName();
+        else if (node.getType().resolveBinding() != null)
+            name = node.getType().resolveBinding().getQualifiedName();
+        checkRef(name);
+        return true;
     }
-    
+
     // method declaration
     public boolean visit(MethodDeclaration node) {
-        if (node.resolveBinding() != null ) {
+        if (node.resolveBinding() != null) {
             String typeName = node.resolveBinding().getReturnType().getQualifiedName();
 
-            if(node.resolveBinding().isConstructor()) {
+            if (node.resolveBinding().isConstructor()) {
                 typeName = node.resolveBinding().getDeclaringClass().getQualifiedName();
                 checkDeclarations(typeName);
-            }
-            else if(!(typeName.equals("void")))
+            } else if (!(typeName.equals("void")))
                 checkRef(typeName);
         }
 
-    	return true;
+        return true;
     }
-    
+
     // single variable declaration
     public boolean visit(SingleVariableDeclaration node) {
-        if (node.getType().resolveBinding() != null) {
-            String name = node.getType().resolveBinding().getQualifiedName();
+        if (node.resolveBinding() != null) {
+            String name = node.resolveBinding().getName();
             checkRef(name);
         }
-    	return true;
+
+
+        return true;
     }
 
     @Override
     // primitive type
     public boolean visit(PrimitiveType node) {
         String name = node.getPrimitiveTypeCode().toString();
-        if(!(node.getParent() instanceof SingleVariableDeclaration))			//because counted already
-        	if(!(node.getParent() instanceof FieldDeclaration))					//same
-        		if(!(node.getParent() instanceof VariableDeclarationStatement))	//same
-        			checkRef(name);												//is there even a point to this visit?
-        																		//not realy, just keep it since diagrams are done alredy
+        if (!(node.getParent() instanceof SingleVariableDeclaration))            //because counted already
+            if (!(node.getParent() instanceof FieldDeclaration))                    //same
+                if (!(node.getParent() instanceof VariableDeclarationStatement))    //same
+                    checkRef(name);                                                //is there even a point to this visit?
+        //not realy, just keep it since diagrams are done alredy
         return true;
     }
 }

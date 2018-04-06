@@ -61,7 +61,7 @@ public class Main {
 		while (!streams.isEmpty()) {
 			String source = readFileToString(streams.pop());		// read the file one by one form the top of the stack
 
-			ASTParser parser = ASTParser.newParser(AST.JLS9);		// create ASTParser
+			ASTParser parser = ASTParser.newParser(AST.JLS4);		// create ASTParser
 			parser.setResolveBindings(true);
 			parser.setKind(ASTParser.K_COMPILATION_UNIT);
 
