@@ -40,8 +40,6 @@ public class Main {
 		}catch (Exception e) { e.printStackTrace(); }
 		
 		for(String source : sourceList) {
-			//if(source.trim().startsWith("//"))continue;
-			if(source.split("//").length != 1) source = source.split("//")[0]; 
 			Map<String, Integer[]> SourceMap = visit(parse(source));
 			for(String key : SourceMap.keySet())
 				if(finalMap.get(key) == null)
